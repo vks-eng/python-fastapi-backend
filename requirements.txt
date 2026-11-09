@@ -64,7 +64,7 @@ pyyaml==6.0.3
     # via uvicorn
 redis==8.1.0
     # via taskforge-api
-sqlalchemy==2.0.57
+sqlalchemy==2.1.8
     # via
     #   alembic
     #   taskforge-api
