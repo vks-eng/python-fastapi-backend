@@ -1,0 +1,734 @@
+{
+  "info": {
+    "name": "TaskForge API",
+    "description": "TaskForge API: Production-Ready FastAPI Task Management Backend.\n\nRun **Auth > Register** then **Auth > Login**: the tokens are stored in collection variables and sent automatically as a Bearer token (inherited from the collection). Swagger UI: {{baseUrl}}/docs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "taskId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": "jane.doe@example.com"
+    },
+    {
+      "key": "password",
+      "value": "Change-me-123"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ],
+              "raw": "{{baseUrl}}/api/v1/auth/register"
+            },
+            "description": "Create an account. Rate limited per IP (429 + Retry-After). 409 `email_taken` if the e-mail is already registered.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"full_name\": \"Jane Doe\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 or 409 (already registered)\", () => pm.expect(pm.response.code).to.be.oneOf([201, 409]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ],
+              "raw": "{{baseUrl}}/api/v1/auth/login"
+            },
+            "description": "Exchange credentials for an access token (JWT, 15 min) and an opaque refresh token. Saves both to collection variables.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"accessToken\", json.access_token);",
+                  "pm.collectionVariables.set(\"refreshToken\", json.refresh_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh (rotate)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "refresh"
+              ],
+              "raw": "{{baseUrl}}/api/v1/auth/refresh"
+            },
+            "description": "Rotate the refresh token. Each refresh token is single-use: replaying an old one returns 401 `refresh_token_reused` and revokes the whole session.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"accessToken\", json.access_token);",
+                  "pm.collectionVariables.set(\"refreshToken\", json.refresh_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "logout"
+              ],
+              "query": [
+                {
+                  "key": "all_sessions",
+                  "value": "false",
+                  "description": "Revoke every session of the user"
+                }
+              ],
+              "raw": "{{baseUrl}}/api/v1/auth/logout?all_sessions=false"
+            },
+            "description": "Revoke the current session: its access and refresh tokens stop working immediately. Set `all_sessions=true` to sign out everywhere."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get my profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "me"
+              ],
+              "raw": "{{baseUrl}}/api/v1/users/me"
+            },
+            "description": "Current user's profile. Saves `userId`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"userId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update my profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "me"
+              ],
+              "raw": "{{baseUrl}}/api/v1/users/me"
+            },
+            "description": "Partial update of full_name / email. To change the password send `current_password` + `new_password` (all other sessions are revoked).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Jane Q. Doe\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List users (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": ">= 1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "1-100"
+                },
+                {
+                  "key": "role",
+                  "value": "user",
+                  "disabled": true,
+                  "description": "user | admin"
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "disabled": true,
+                  "description": "true | false"
+                },
+                {
+                  "key": "q",
+                  "value": "jane",
+                  "disabled": true,
+                  "description": "Search e-mail / full name"
+                }
+              ],
+              "raw": "{{baseUrl}}/api/v1/users?page=1&page_size=20"
+            },
+            "description": "Admin only (403 `permission_denied` otherwise). Paginated, filterable."
+          }
+        },
+        {
+          "name": "Get user (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "{{userId}}"
+              ],
+              "raw": "{{baseUrl}}/api/v1/users/{{userId}}"
+            },
+            "description": "Admin only."
+          }
+        },
+        {
+          "name": "Activate / deactivate / change role (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "{{userId}}"
+              ],
+              "raw": "{{baseUrl}}/api/v1/users/{{userId}}"
+            },
+            "description": "Admin only. Deactivation revokes all of the user's sessions. Admins cannot deactivate or demote themselves (400 `self_modification`).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": true,\n  \"role\": \"user\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "Create task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks"
+              ],
+              "raw": "{{baseUrl}}/api/v1/tasks"
+            },
+            "description": "Create a task owned by the caller. Saves `taskId`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Prepare client demo\",\n  \"description\": \"Slides + live API walkthrough\",\n  \"status\": \"todo\",\n  \"priority\": \"high\",\n  \"due_date\": \"2030-01-15T17:00:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"taskId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List tasks (filter / sort / paginate)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": ">= 1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "1-100"
+                },
+                {
+                  "key": "status",
+                  "value": "todo",
+                  "description": "todo | in_progress | done | cancelled (repeatable)"
+                },
+                {
+                  "key": "priority",
+                  "value": "high",
+                  "disabled": true,
+                  "description": "low | medium | high | urgent (repeatable)"
+                },
+                {
+                  "key": "q",
+                  "value": "demo",
+                  "disabled": true,
+                  "description": "Case-insensitive search in title/description"
+                },
+                {
+                  "key": "due_after",
+                  "value": "2030-01-01T00:00:00Z",
+                  "disabled": true,
+                  "description": "ISO-8601 with offset"
+                },
+                {
+                  "key": "due_before",
+                  "value": "2030-12-31T23:59:59Z",
+                  "disabled": true,
+                  "description": "ISO-8601 with offset"
+                },
+                {
+                  "key": "owner_id",
+                  "value": "{{userId}}",
+                  "disabled": true,
+                  "description": "Admin only"
+                },
+                {
+                  "key": "sort",
+                  "value": "-priority,due_date",
+                  "description": "created_at, updated_at, due_date, priority, status, title"
+                }
+              ],
+              "raw": "{{baseUrl}}/api/v1/tasks?page=1&page_size=20&status=todo&sort=-priority,due_date"
+            },
+            "description": "Non-admins only see their own tasks. `status` and `priority` are repeatable. `sort` is comma-separated; prefix `-` for descending."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"has pagination meta\", () => pm.expect(pm.response.json()).to.have.property(\"meta\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get task",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks",
+                "{{taskId}}"
+              ],
+              "raw": "{{baseUrl}}/api/v1/tasks/{{taskId}}"
+            },
+            "description": "404 `task_not_found` if it does not exist or belongs to another user."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update task",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks",
+                "{{taskId}}"
+              ],
+              "raw": "{{baseUrl}}/api/v1/tasks/{{taskId}}"
+            },
+            "description": "Partial update. Setting `status` to `done` stamps `completed_at`; `null` clears description / due_date.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"done\",\n  \"priority\": \"urgent\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete task",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks",
+                "{{taskId}}"
+              ],
+              "raw": "{{baseUrl}}/api/v1/tasks/{{taskId}}"
+            },
+            "description": "Returns 204 No Content."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health (liveness)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ],
+              "raw": "{{baseUrl}}/health"
+            },
+            "description": "Process is up.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ready (readiness)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ready"
+              ],
+              "raw": "{{baseUrl}}/ready"
+            },
+            "description": "200 when the database is reachable, 503 otherwise.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

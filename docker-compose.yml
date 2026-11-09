@@ -1,0 +1,69 @@
+# TaskForge API: local / single-VM stack (API + PostgreSQL + Redis).
+# Usage: cp .env.example .env  (fill in secrets)  &&  docker compose up --build
+# Migrations run automatically in the one-shot `migrate` service before the API starts.
+
+name: taskforge
+
+x-api-common: &api-common
+  build:
+    context: .
+  image: taskforge-api:local
+  env_file: .env
+  environment:
+    DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-taskforge}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-taskforge}
+    REDIS_URL: redis://redis:6379/0
+  labels:
+    com.taskforge.project: "TaskForge API"
+    com.taskforge.description: "Production-Ready FastAPI Task Management Backend"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-taskforge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-taskforge}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    labels:
+      com.taskforge.service: "database"
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    labels:
+      com.taskforge.service: "rate-limit-store"
+
+  migrate:
+    <<: *api-common
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    <<: *api-common
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata:
