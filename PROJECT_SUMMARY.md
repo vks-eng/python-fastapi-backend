@@ -44,8 +44,8 @@ TaskForge is a task-management REST API built the way a production backend shoul
 |---|---|
 | REST endpoints | 16 (auth 4, users 5, tasks 5, system 2) |
 | Database tables | 4, with foreign keys, enums, check constraint and 6 indexes |
-| Automated tests | 119 (pytest, all passing against real PostgreSQL 16) |
-| Test coverage | 96% line + branch (CI gate ≥ 85%) |
+| Automated tests | 365 (131 unit · 228 integration · 3 end-to-end · 3 contract), all passing against real PostgreSQL 16 |
+| Test coverage | 97.6% line + branch (CI gate ≥ 85%) |
 
 ## What this demonstrates for a client
 

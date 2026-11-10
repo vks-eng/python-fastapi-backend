@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   constraint and composite indexes; async Alembic environment and initial migration `0001`.
 - **Tooling**: management CLI (`create-admin`, `seed`), multi-stage non-root Dockerfile,
   Docker Compose (API + PostgreSQL + Redis + migration job), Makefile, pre-commit hooks.
-- **Quality**: 119 pytest tests against real PostgreSQL (96% coverage), Ruff lint/format,
+- **Quality**: 365 pytest tests (unit, integration, end-to-end, contract fuzzing) against real PostgreSQL (97.6% coverage), Ruff lint/format,
   GitHub Actions CI (lint, tests + coverage gate, migration drift check, pip-audit, Docker
   build), CodeQL, Dependabot.
 - **Docs**: README, ARCHITECTURE, PROJECT_SUMMARY, API reference, deployment guide,

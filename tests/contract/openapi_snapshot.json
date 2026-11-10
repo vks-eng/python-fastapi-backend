@@ -4,12 +4,14 @@
       "AdminUserUpdate": {
         "additionalProperties": false,
         "description": "Admin-only: account activation/deactivation and role management.",
+        "minProperties": 1,
         "properties": {
           "full_name": {
             "anyOf": [
               {
                 "maxLength": 200,
                 "minLength": 1,
+                "pattern": "^[^\\x00]*\\S[^\\x00]*$",
                 "type": "string"
               },
               {
@@ -19,25 +21,11 @@
             "title": "Full Name"
           },
           "is_active": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Is Active"
+            "title": "Is Active",
+            "type": "boolean"
           },
           "role": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserRole"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/UserRole"
           }
         },
         "title": "AdminUserUpdate",
@@ -169,6 +157,7 @@
             "format": "password",
             "maxLength": 128,
             "minLength": 1,
+            "pattern": "^[^\\x00]*$",
             "title": "Password",
             "type": "string"
           }
@@ -258,6 +247,7 @@
           "refresh_token": {
             "maxLength": 256,
             "minLength": 16,
+            "pattern": "^[^\\x00]*$",
             "title": "Refresh Token",
             "type": "string"
           }
@@ -275,6 +265,7 @@
             "anyOf": [
               {
                 "maxLength": 5000,
+                "pattern": "^[^\\x00]*$",
                 "type": "string"
               },
               {
@@ -307,6 +298,7 @@
           "title": {
             "maxLength": 200,
             "minLength": 1,
+            "pattern": "^[^\\x00]*\\S[^\\x00]*$",
             "title": "Title",
             "type": "string"
           }
@@ -423,11 +415,13 @@
       "TaskUpdate": {
         "additionalProperties": false,
         "description": "Partial update: only provided fields are changed; `null` clears nullable fields.",
+        "minProperties": 1,
         "properties": {
           "description": {
             "anyOf": [
               {
                 "maxLength": 5000,
+                "pattern": "^[^\\x00]*$",
                 "type": "string"
               },
               {
@@ -449,37 +443,17 @@
             "title": "Due Date"
           },
           "priority": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/TaskPriority"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/TaskPriority"
           },
           "status": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/TaskStatus"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/TaskStatus"
           },
           "title": {
-            "anyOf": [
-              {
-                "maxLength": 200,
-                "minLength": 1,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Title"
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "^[^\\x00]*\\S[^\\x00]*$",
+            "title": "Title",
+            "type": "string"
           }
         },
         "title": "TaskUpdate",
@@ -534,6 +508,7 @@
               {
                 "maxLength": 200,
                 "minLength": 1,
+                "pattern": "^[^\\x00]*\\S[^\\x00]*$",
                 "type": "string"
               },
               {
@@ -546,6 +521,7 @@
             "format": "password",
             "maxLength": 128,
             "minLength": 8,
+            "pattern": "^[^\\x00]*(?:[A-Za-z][^\\x00]*[0-9]|[0-9][^\\x00]*[A-Za-z])[^\\x00]*$",
             "title": "Password",
             "type": "string"
           }
@@ -632,37 +608,32 @@
       },
       "UserUpdate": {
         "additionalProperties": false,
+        "dependentRequired": {
+          "new_password": [
+            "current_password"
+          ]
+        },
         "description": "Self-service profile update. Changing the password requires the current one.",
+        "minProperties": 1,
         "properties": {
           "current_password": {
-            "anyOf": [
-              {
-                "maxLength": 128,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Current Password"
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\x00]*$",
+            "title": "Current Password",
+            "type": "string"
           },
           "email": {
-            "anyOf": [
-              {
-                "format": "email",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Email"
+            "format": "email",
+            "title": "Email",
+            "type": "string"
           },
           "full_name": {
             "anyOf": [
               {
                 "maxLength": 200,
                 "minLength": 1,
+                "pattern": "^[^\\x00]*\\S[^\\x00]*$",
                 "type": "string"
               },
               {
@@ -672,17 +643,11 @@
             "title": "Full Name"
           },
           "new_password": {
-            "anyOf": [
-              {
-                "maxLength": 128,
-                "minLength": 8,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "New Password"
+            "maxLength": 128,
+            "minLength": 8,
+            "pattern": "^[^\\x00]*(?:[A-Za-z][^\\x00]*[0-9]|[0-9][^\\x00]*[A-Za-z])[^\\x00]*$",
+            "title": "New Password",
+            "type": "string"
           }
         },
         "title": "UserUpdate",
@@ -736,6 +701,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad request"
           },
           "401": {
             "content": {
@@ -805,6 +780,16 @@
           "204": {
             "description": "Successful Response"
           },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad request"
+          },
           "401": {
             "content": {
               "application/json": {
@@ -860,6 +845,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad request"
           },
           "401": {
             "content": {
@@ -921,6 +916,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad request"
           },
           "409": {
             "content": {
@@ -1039,6 +1044,7 @@
                 {
                   "maxLength": 100,
                   "minLength": 1,
+                  "pattern": "^[^\\x00]*$",
                   "type": "string"
                 },
                 {
@@ -1210,6 +1216,16 @@
             },
             "description": "Successful Response"
           },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad request"
+          },
           "401": {
             "content": {
               "application/json": {
@@ -1260,6 +1276,16 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad request"
           },
           "401": {
             "content": {
@@ -1326,6 +1352,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad request"
           },
           "401": {
             "content": {
@@ -1402,6 +1438,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad request"
           },
           "401": {
             "content": {
@@ -1514,6 +1560,7 @@
                 {
                   "maxLength": 100,
                   "minLength": 1,
+                  "pattern": "^[^\\x00]*$",
                   "type": "string"
                 },
                 {
@@ -1534,6 +1581,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad request"
           },
           "401": {
             "content": {
@@ -1590,6 +1647,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad request"
           },
           "401": {
             "content": {
@@ -1722,6 +1789,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad request"
           },
           "401": {
             "content": {

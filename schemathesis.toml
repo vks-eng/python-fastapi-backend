@@ -1,0 +1,5 @@
+# Schemathesis configuration (used by tests/contract/test_schemathesis.py).
+# 400 is a documented business-rule rejection for schema-valid input
+# (wrong current_password, admin self-demotion, inverted date range).
+[checks.positive_data_acceptance]
+expected-statuses = ["2XX", "400", "401", "403", "404", "409", "429"]

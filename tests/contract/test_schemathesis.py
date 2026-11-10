@@ -26,6 +26,7 @@ import pytest
 import schemathesis
 import uvicorn
 from hypothesis import HealthCheck, settings
+from hypothesis import strategies as st
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
@@ -33,6 +34,13 @@ from app.main import create_app
 from tests.conftest import make_settings
 
 FUZZ_PASSWORD = "Fuzz-passw0rd"
+
+# pydantic's EmailStr (email-validator) rejects RFC 6761 special-use domains such as `.test`,
+# which Hypothesis' default email strategy produces. Generate addresses on ordinary domains so
+# "schema-valid" really means valid for the server.
+schemathesis.openapi.format(
+    "email", st.emails(domains=st.sampled_from(["example.com", "example.org", "mail.example.net"]))
+)
 EXCLUDED_OPERATIONS = {("POST", "/api/v1/auth/logout")}
 
 

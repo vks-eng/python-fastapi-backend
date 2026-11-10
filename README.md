@@ -298,12 +298,21 @@ uv run ruff check . && uv run ruff format --check .
 
 The test suite covers registration, login, token expiry, refresh rotation and reuse detection, logout, profile updates, task CRUD, pagination, filtering, sorting, validation, admin authorization, cross-user access prevention, error handling, health/readiness and the CLI.
 
-| Metric | Result |
+| Layer | Location | Tests | What it covers |
+|---|---|---|---|
+| Unit | `tests/unit` | 131 | Security primitives, schemas (boundary values and equivalence classes), sort parsing, settings, rate limiter |
+| Integration | `tests/integration` | 228 | Every endpoint against real PostgreSQL: auth, users, tasks, health, CLI, error envelope |
+| End-to-end | `tests/e2e` | 3 | Full user, admin and password-change journeys |
+| Contract | `tests/contract` | 3 | OpenAPI snapshot + Schemathesis property-based fuzzing of every operation |
+| **Total** | | **365** | 7 tagged `smoke`, 58 tagged `security` |
+
+| Metric | Result (local run, 10 Nov 2026) |
 |---|---|
-| Tests | **119 passed** (about 40 s, real PostgreSQL 16) |
-| Coverage | **96%** line + branch (CI gate: ≥ 85%) |
+| Tests | **365 passed**, 1 documented skip (`logout` excluded from fuzzing) |
+| Coverage | **97.6%** line + branch (CI gate: ≥ 85%) |
 | Lint | `ruff check` + `ruff format --check`: clean |
-| Dependencies | `pip-audit`: no known vulnerabilities at time of writing |
+
+Run a subset with markers: `pytest -m smoke`, `pytest -m security`, `pytest tests/unit`. The [CI badge](https://github.com/vks-eng/python-fastapi-backend/actions/workflows/ci.yml) shows the latest result on GitHub.
 
 Each test runs inside a transaction that is rolled back afterwards (the services' commits become SAVEPOINTs), and the schema is built by running the real Alembic migrations (upgrade → downgrade → upgrade) once per test session.
 
@@ -366,11 +375,19 @@ python-fastapi-backend/
 
 ## 🖼 Screenshots
 
-| Swagger UI | Example request |
-|---|---|
-| ![Swagger UI](docs/screenshots/swagger-ui.png) | ![Postman](docs/screenshots/postman-login.png) |
+Captured from a local run (seeded demo data, real PostgreSQL) through the built-in Swagger UI.
 
-> Screenshots live in [`docs/screenshots/`](docs/screenshots/); see [its README](docs/screenshots/README.md) for the capture list.
+**Interactive API documentation** (`/docs`)
+
+![Swagger UI](docs/screenshots/swagger-ui.png)
+
+| Login: access + refresh token pair | Filtered, sorted, paginated task list |
+|---|---|
+| ![Login response](docs/screenshots/swagger-login.png) | ![Task list](docs/screenshots/tasks-filtered.png) |
+
+**Refresh-token reuse detection.** Replaying an already-rotated refresh token is rejected, and the whole session is revoked:
+
+![Refresh token reuse rejected](docs/screenshots/refresh-reuse.png)
 
 ## 🗺 Roadmap
 

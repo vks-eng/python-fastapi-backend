@@ -13,7 +13,7 @@ from app.schemas.user import AdminUserUpdate, UserRead, UserUpdate
 router = APIRouter(
     prefix="/users",
     tags=["users"],
-    responses={401: ERROR_RESPONSES[401], 422: ERROR_RESPONSES[422]},
+    responses={400: ERROR_RESPONSES[400], 401: ERROR_RESPONSES[401], 422: ERROR_RESPONSES[422]},
 )
 
 

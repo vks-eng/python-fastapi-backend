@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -9,6 +10,7 @@ from pydantic import (
     AfterValidator,
     AwareDatetime,
     BeforeValidator,
+    ConfigDict,
     Field,
     model_validator,
 )
@@ -35,10 +37,17 @@ Description = Annotated[
     AfterValidator(ensure_storable_text),
 ]
 
+# Matches plain numbers (Unix timestamps), which must not be accepted as date-times.
+_NUMERIC = re.compile(r"[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?")
+
 
 def _require_iso_string(value: object) -> object:
     # Pydantic would otherwise also accept Unix timestamps; the API contract is ISO-8601.
-    if value is not None and not isinstance(value, str | datetime):
+    # Query parameters always arrive as strings, so numeric strings ("0.5", "1700000000") must be
+    # rejected explicitly too.
+    if value is None or isinstance(value, datetime):
+        return value
+    if not isinstance(value, str) or _NUMERIC.fullmatch(value.strip()):
         raise ValueError("must be an ISO-8601 date-time string with a timezone offset")
     return value
 
@@ -64,19 +73,19 @@ class TaskCreate(InputModel):
 class TaskUpdate(InputModel):
     """Partial update: only provided fields are changed; `null` clears nullable fields."""
 
-    title: Title | None = None
+    model_config = ConfigDict(json_schema_extra={"minProperties": 1})
+
+    # title/status/priority may be omitted but not set to null.
+    title: Title = None  # type: ignore[assignment]
     description: Description | None = None
-    status: TaskStatus | None = None
-    priority: TaskPriority | None = None
+    status: TaskStatus = None  # type: ignore[assignment]
+    priority: TaskPriority = None  # type: ignore[assignment]
     due_date: DueDate | None = None
 
     @model_validator(mode="after")
     def _check(self) -> TaskUpdate:
         if not self.model_fields_set:
             raise ValueError("at least one field must be provided")
-        for name in ("title", "status", "priority"):
-            if name in self.model_fields_set and getattr(self, name) is None:
-                raise ValueError(f"{name} cannot be null")
         return self
 
 

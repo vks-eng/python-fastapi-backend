@@ -11,6 +11,7 @@ Unexpected exceptions are logged with a traceback server-side and returned as a 
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any
 
 from fastapi import FastAPI, Request, status
@@ -142,15 +143,40 @@ async def app_error_handler(request: Request, exc: Exception) -> JSONResponse:
     )
 
 
+_HTTP_METHODS = frozenset({"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"})
+
+
+def _allowed_methods(request: Request) -> str | None:
+    """Every method served at this path, across all routes.
+
+    Starlette builds ``Allow`` from the first route whose path matched, so a path served by
+    separate GET and PATCH routes would advertise only ``GET``. RFC 9110 requires the full set.
+    """
+    # Derived from the OpenAPI document: it is the public contract and is independent of
+    # FastAPI's internal router structure.
+    path = request.url.path
+    methods: set[str] = set()
+    for template, operations in request.app.openapi().get("paths", {}).items():
+        pattern = "^" + re.sub(r"\\\{[^/]+?\\\}", "[^/]+", re.escape(template)) + "$"
+        if re.match(pattern, path):
+            methods.update(m.upper() for m in operations if m.upper() in _HTTP_METHODS)
+    return ", ".join(sorted(methods)) if methods else None
+
+
 async def http_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, StarletteHTTPException)  # noqa: S101
     message = exc.detail if isinstance(exc.detail, str) else "HTTP error"
+    headers = dict(getattr(exc, "headers", None) or {})
+    if exc.status_code == status.HTTP_405_METHOD_NOT_ALLOWED:
+        allow = _allowed_methods(request)
+        if allow:
+            headers["Allow"] = allow
     return error_response(
         request,
         status_code=exc.status_code,
         code=_HTTP_CODES.get(exc.status_code, "http_error"),
         message=message,
-        headers=getattr(exc, "headers", None),
+        headers=headers or None,
     )
 
 

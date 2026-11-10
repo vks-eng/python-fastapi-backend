@@ -27,6 +27,9 @@ dev = [
     "pytest-cov>=5.0",
     "httpx>=0.27",
     "ruff>=0.6",
+    # Contract testing: property-based fuzzing of the OpenAPI schema (tests/contract).
+    "schemathesis>=4.33,<5",
+    "hypothesis>=6.170",
     # Embedded PostgreSQL binaries used ONLY for local test runs when
     # TEST_DATABASE_URL is not set. Never imported by application code.
     "pgserver>=0.1.4; platform_machine == 'x86_64' or platform_machine == 'AMD64' or platform_machine == 'arm64' or platform_machine == 'aarch64'",

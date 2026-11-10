@@ -4,18 +4,17 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Query, Response, status
-from pydantic import AwareDatetime
 
 from app.api.deps import CurrentAuth, TaskServiceDep
 from app.core.exceptions import AppError
 from app.models import TaskPriority, TaskStatus
 from app.schemas.common import ERROR_RESPONSES, NO_NUL_PATTERN, Page
-from app.schemas.task import TaskCreate, TaskFilters, TaskRead, TaskUpdate, parse_sort
+from app.schemas.task import DueDate, TaskCreate, TaskFilters, TaskRead, TaskUpdate, parse_sort
 
 router = APIRouter(
     prefix="/tasks",
     tags=["tasks"],
-    responses={401: ERROR_RESPONSES[401], 422: ERROR_RESPONSES[422]},
+    responses={400: ERROR_RESPONSES[400], 401: ERROR_RESPONSES[401], 422: ERROR_RESPONSES[422]},
 )
 
 
@@ -53,8 +52,8 @@ async def list_tasks(
             description="Search title/description",
         ),
     ] = None,
-    due_before: AwareDatetime | None = None,
-    due_after: AwareDatetime | None = None,
+    due_before: DueDate | None = None,
+    due_after: DueDate | None = None,
     owner_id: Annotated[uuid.UUID | None, Query(description="Admin only")] = None,
     sort: Annotated[
         str | None,

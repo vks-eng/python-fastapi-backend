@@ -7,7 +7,11 @@ from app.schemas.auth import LoginRequest, RefreshRequest, TokenPair
 from app.schemas.common import ERROR_RESPONSES
 from app.schemas.user import UserCreate, UserRead
 
-router = APIRouter(prefix="/auth", tags=["auth"], responses={422: ERROR_RESPONSES[422]})
+router = APIRouter(
+    prefix="/auth",
+    tags=["auth"],
+    responses={400: ERROR_RESPONSES[400], 422: ERROR_RESPONSES[422]},
+)
 
 
 @router.post(

@@ -80,8 +80,8 @@ def test_refresh_token_length_boundaries(length: int, valid: bool) -> None:
         ("Letters-and-1", True),  # letters + digit
         ("onlyletters", False),  # no digit
         ("1234567890", False),  # no letter
-        (" Padded-pass1", False),  # leading whitespace
-        ("Padded-pass1 ", False),  # trailing whitespace
+        (" Padded-pass1", True),  # whitespace is kept as typed (NIST SP 800-63B)
+        ("Padded-pass1 ", True),  # whitespace is kept as typed (NIST SP 800-63B)
         ("Nul\x00byte-pass1", False),  # NUL byte
     ],
 )

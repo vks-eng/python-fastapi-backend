@@ -1,22 +1,16 @@
 # Screenshots
 
-This folder holds the images referenced from the main [README](../README.md). They are
-not checked in yet. Capture them from a local stack (`make up && make seed-docker`) and
-save them here with **exactly** these filenames:
+Real captures from a local run of TaskForge: an embedded PostgreSQL, `alembic upgrade head`,
+`python -m app.cli seed`, and uvicorn, driven through the built-in Swagger UI with Playwright
+(Microsoft Edge, headless, 1440 px wide). The tokens visible in them came from a throwaway local
+server whose secret and database were discarded afterwards.
 
-| File | What to capture | Referenced from |
-|---|---|---|
-| `swagger-ui.png` | `http://localhost:8000/docs` with the Auth, Users, Tasks and Health groups visible (ideally after clicking **Authorize**) | README → Screenshots |
-| `postman-login.png` | Postman with **Auth → Login** sent: the 200 response with `access_token`/`refresh_token` and the passing test results | README → Screenshots |
-
-Optional extras (not referenced yet; add them to the README table if you capture them):
-
-| File | What to capture |
+| File | Shows |
 |---|---|
-| `tasks-filtered.png` | `GET /api/v1/tasks?status=todo&sort=-priority,due_date` response showing `items` and `meta` |
-| `refresh-reuse.png` | Replaying an old refresh token: `401 refresh_token_reused` |
-| `json-logs.png` | `docker compose logs api` showing JSON log lines with `request_id` |
-| `ci-green.png` | The GitHub Actions run with lint, tests, audit and Docker build passing |
+| `swagger-ui.png` | `/docs`: the generated OpenAPI documentation |
+| `swagger-login.png` | `POST /api/v1/auth/login` with the seeded demo user → `200` with an access/refresh token pair |
+| `tasks-filtered.png` | `GET /api/v1/tasks?page_size=5&sort=-priority,due_date` (authorized) → `200` with `items` + `meta` |
+| `refresh-reuse.png` | Replaying an already-rotated refresh token → `401 refresh_token_reused` (session revoked) |
 
-Guidelines: PNG, about 1400 px wide, light theme, no real e-mail addresses or tokens
-(use the seeded demo accounts; tokens expire after 15 minutes anyway).
+To recapture, start the stack (`docker compose up`, then `docker compose exec api python -m app.cli seed`),
+open http://localhost:8000/docs and repeat the requests above with the demo account `demo@example.com`.
