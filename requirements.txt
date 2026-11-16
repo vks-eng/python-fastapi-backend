@@ -2,7 +2,7 @@
 #    uv export --frozen --no-dev --no-hashes --no-emit-project --format requirements-txt -o requirements.txt
 alembic==1.20.1
     # via taskforge-api
-annotated-doc==0.0.5
+annotated-doc==0.0.6
     # via fastapi
 annotated-types==0.8.0
     # via pydantic
@@ -12,7 +12,7 @@ anyio==4.16.0
     #   watchfiles
 argon2-cffi==25.1.0
     # via taskforge-api
-argon2-cffi-bindings==26.1.0
+argon2-cffi-bindings==26.2.0
     # via argon2-cffi
 asyncpg==0.32.0
     # via taskforge-api
@@ -24,7 +24,7 @@ dnspython==2.9.2
     # via email-validator
 email-validator==2.3.0
     # via taskforge-api
-fastapi==0.162.2
+fastapi==0.162.5
     # via taskforge-api
 greenlet==3.5.6
     # via sqlalchemy
@@ -64,7 +64,7 @@ pyyaml==6.0.3
     # via uvicorn
 redis==8.1.0
     # via taskforge-api
-sqlalchemy==2.0.57
+sqlalchemy==2.1.8
     # via
     #   alembic
     #   taskforge-api
