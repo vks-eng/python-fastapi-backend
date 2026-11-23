@@ -17,7 +17,7 @@ click==8.5.1
     # via schemathesis
 colorama==0.4.6 ; sys_platform == 'win32'
     # via pytest
-coverage==7.17.2
+coverage==7.17.3
     # via pytest-cov
 fasteners==0.20 ; platform_machine == 'AMD64' or platform_machine == 'aarch64' or platform_machine == 'arm64' or platform_machine == 'x86_64'
     # via pgserver
@@ -25,12 +25,12 @@ graphql-core==3.3.2
     # via hypothesis-graphql
 h11==0.16.0
     # via httpcore
-harfile==0.6.0
+harfile==0.7.0
     # via schemathesis
 httpcore==1.0.9
     # via httpx
 httpx==0.28.1
-hypothesis==6.170.15
+hypothesis==6.170.17
     # via
     #   hypothesis-graphql
     #   schemathesis
@@ -43,9 +43,9 @@ idna==3.20
     #   requests
 iniconfig==2.3.1
     # via pytest
-jsonschema-rs==0.60.3
+jsonschema-rs==0.61.2
     # via schemathesis
-markdown-it-py==4.2.0
+markdown-it-py==4.3.0
     # via rich
 markupsafe==3.0.4
     # via werkzeug
@@ -54,7 +54,7 @@ mdurl==0.1.2
 packaging==26.3
     # via pytest
 pgserver==0.1.4 ; platform_machine == 'AMD64' or platform_machine == 'aarch64' or platform_machine == 'arm64' or platform_machine == 'x86_64'
-platformdirs==4.14.5 ; platform_machine == 'AMD64' or platform_machine == 'aarch64' or platform_machine == 'arm64' or platform_machine == 'x86_64'
+platformdirs==4.14.8 ; platform_machine == 'AMD64' or platform_machine == 'aarch64' or platform_machine == 'arm64' or platform_machine == 'x86_64'
     # via pgserver
 pluggy==1.7.0
     # via
@@ -73,7 +73,7 @@ pytest==9.2.0
     #   pytest-asyncio
     #   pytest-cov
     #   schemathesis
-pytest-asyncio==1.4.1.post1
+pytest-asyncio==1.5.0
 pytest-cov==7.1.0
 pyyaml==6.0.3
     # via schemathesis
@@ -81,8 +81,8 @@ requests==2.34.2
     # via schemathesis
 rich==15.0.0
     # via schemathesis
-ruff==0.17.4
-schemathesis==4.33.1
+ruff==0.17.6
+schemathesis==4.33.4
 sortedcontainers==2.4.0
     # via hypothesis
 typing-extensions==4.16.0
